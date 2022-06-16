@@ -26,7 +26,16 @@ class _B2EPageState extends State<B2EPage> {
   @override
   void initState() {
     //アプリ起動時に一度だけ実行される
-    print("initState");
+    getHttp();
+  }
+
+  void getHttp() async {
+    try {
+      var response = await Dio().get('http://www.google.com');
+      print(response);
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
