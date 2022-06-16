@@ -2,6 +2,6 @@
 
 A new Flutter project.
 
-## B2E
+## B2Epro
 
 人事パッケージB2Eproのスマホアプリ版レポジトリ
