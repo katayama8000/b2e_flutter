@@ -97,6 +97,7 @@ class _B2EPageState extends State<B2EPage> {
 
     print(response.headers);
     print(response.statusCode);
+    print(response);
     print(await response.stream.bytesToString());
 
     // var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
