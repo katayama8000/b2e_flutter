@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-//import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 import 'pages/signup.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,13 +34,21 @@ class _B2EPageState extends State<B2EPage> {
   String csrf = "";
   String userId = "";
   String password = "";
-
-  //final myController = TextEditingController();
+  String deviceId = "";
 
   @override
   void initState() {
     //アプリ起動時に一度だけ実行される
     getCsrf();
+    getDeviceInfo();
+  }
+
+  void getDeviceInfo() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    AndroidDeviceInfo info = await deviceInfo.androidInfo;
+    var tmp = info.toMap();
+    deviceId = tmp["id"];
+    print(deviceId);
   }
 
   //CSRFトークンを取得する(htmlからスクレイピングする)
@@ -73,31 +81,35 @@ class _B2EPageState extends State<B2EPage> {
     print(password);
 
     var headers = {
+      'X-Requested-With': 'XMLHttpRequest',
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Cookie': 'JSESSIONID=223377849891C22A16595ECBB4109A0B'
     };
     var request = http.Request(
         'POST', Uri.parse('http://stimeapp.snapshot.co.jp/ss/login'));
     request.bodyFields = {
-      'userName': userId,
-      'password': password,
-      '_csrf': csrf
+      'userName': '1000100072',
+      'password': '3edcvbnm',
+      '_csrf': csrf,
     };
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
 
-    //response-header に X-B2EPRO-Login: true というヘッダが含まれている場合はログイン失敗
-    //含まれていない場合はログイン成功
+    print(response.headers);
+    print(response.statusCode);
+    print(await response.stream.bytesToString());
 
-    if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-    } else {
-      print(response.reasonPhrase);
-    }
+    // var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
+    // var response = await http.post(url, body: {
+    //   'userName': '1000100072',
+    //   'password': '3edcvbnm',
+    //   '_csrf': csrf
+    // });
+    // print('Response status: ${response.statusCode}');
+    // print('Response body: ${response.body}');
 
-    //成功した場合、それぞれの機種の個体識別番号を登録する
-    pushRegisterDevicePage();
+    //成功した場合、それぞれの機種の個体識別番号を登録す
+    //pushRegisterDevicePage();
   }
 
   @override
@@ -137,7 +149,7 @@ class _B2EPageState extends State<B2EPage> {
             ),
             OutlinedButton(
               onPressed: () => {pushRegisterDevicePage()},
-              child: const Text('SIGNUP'),
+              child: const Text('Move!!!'),
             ),
           ],
         ),

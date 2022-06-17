@@ -1,0 +1,218 @@
+openapi: 3.0.3
+info:
+  title: タイムレコーダAPI
+  version: 1.0.0
+servers:
+  - url: http://stimeapp.snapshot.co.jp/ss
+    description: "本番環境"
+tags:
+  - name: record
+    description: 打刻する
+  - name: card
+    description: 社員とカードIDを紐づける
+  - name: login
+    description: ログインする
+paths:
+  /stk/record/recordTime:
+    post:
+      tags: [record]
+      summary: "打刻受け付ける"
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                inOutType:
+                  type: string
+                  enum:
+                    - 00
+                    - 1
+                    - 2
+                    - 3
+                    - 4
+                    - 5
+                    - 6
+                    - 7
+                    - 8
+                    - 9
+                    - 10
+                  description: |
+                    送信区分
+                      00:自動判定
+                      1:出勤
+                      2:退勤
+                      3:外出
+                      4:外出戻
+                      5:応援開始
+                      6:応援終了
+                      7:残業退勤
+                      8:早出出勤
+                      9:休憩入
+                      10:休憩戻
+                scanTimeStr:
+                  type: string
+                  description: 送信日時 yyyy/MM/dd kk:mm:ss
+                cardId:
+                  type: string
+                  description: カード識別ID
+                latitude:
+                  type: number
+                  description: 緯度 省略可
+                longitude:
+                  type: number
+                  description: 経度 省略可
+                recorderCode:
+                  type: string
+                  description: 打刻機識別番号 省略可
+      responses:
+        "200":
+          description: "受け付けた"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultCode:
+                    type: integer
+                    description: 0:正常終了 以外:エラー
+                  sendType:
+                    type: string
+                    enum:
+                      - 1
+                      - 2
+                      - 3
+                      - 4
+                      - 5
+                      - 6
+                      - 7
+                      - 8
+                      - 9
+                      - 10
+                    description: |
+                      送信受付区分
+                        1:出勤
+                        2:退勤
+                        3:外出
+                        4:外出戻
+                        5:応援開始
+                        6:応援終了
+                        7:残業退勤
+                        8:早出出勤
+                        9:休憩入
+                        10:休憩戻
+                  message:
+                    type: string
+                    description: 受付時のメッセージ
+                  sysInOutType:
+                    type: integer
+                    description: sendTypeと同じ
+                  employeeNo:
+                    type: string
+                    description: 社員番号
+                  companyCode:
+                    type: string
+                    description: 会社コード
+                  empName:
+                    type: string
+                    description: 氏名
+  /stk/record/card/search:
+    post:
+      tags: [card]
+      summary: カード識別IDを指定して検索する
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                cardId:
+                  type: string
+                  description: カード識別ID
+      responses:
+        "200":
+          description: "検索成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cardId:
+                    type: string
+                    description: カード識別ID
+                  employeeId:
+                    type: integer
+                    description: 社員ID
+                  employeeNo:
+                    type: string
+                    description: 社員番号
+                  companyCode:
+                    type: string
+                    description: 会社コード
+                  updateEmployeeId:
+                    type: integer
+                    description: 最終更新社員ID
+  /stk/record/card/update:
+    post:
+      tags: [card]
+      summary: カード識別IDと社員を紐づける
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                cardId:
+                  type: string
+                  description: カード識別ID
+                employeeNo:
+                  type: string
+                  description: 社員番号
+                companyCode:
+                  type: string
+                  description: 会社コード
+                updateEmployeeId:
+                  type: integer
+                  description: 最終更新社員ID
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    description: 「更新しました」文字列
+  /login:
+    post:
+      tags: [login]
+      summary: "ログインする"
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                userName:
+                  type: string
+                  description: ユーザID
+                password:
+                  type: string
+                  description: パスワード
+                _csrf:
+                  type: string
+                  description: token( <input type="hidden" name="_csrf" value="****この値***")
+      responses:
+        "200":
+          description: |
+            ログインできた場合もできてない場合も200が返ってしまうので
+            ログイン失敗した場合は response-header に
+            X-B2EPRO-Login: true
+            っていうヘッダが含まれている場合はログイン失敗
+            含まれていない場合はログイン成功のはずです
