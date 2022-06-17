@@ -1,145 +1,138 @@
+import 'dart:async';
+
+import 'dart:io';
 import 'package:flutter/material.dart';
-//import 'package:dio/dio.dart';
-import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' show parse;
-import 'pages/signup.dart';
+import 'package:flutter/services.dart';
+import 'package:device_info/device_info.dart';
 
 void main() {
-  runApp(const MyApp());
+  runZonedGuarded(() {
+    runApp(MyApp());
+  }, (dynamic error, dynamic stack) {
+    print(error);
+    print(stack);
+  });
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  // This widget is the root of your application.
+class MyApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        theme: ThemeData(
-          brightness: Brightness.dark,
-        ),
-        home: B2EPage());
-  }
+  _MyAppState createState() => _MyAppState();
 }
 
-class B2EPage extends StatefulWidget {
-  const B2EPage({Key? key}) : super(key: key);
-
-  @override
-  State<B2EPage> createState() => _B2EPageState();
-}
-
-class _B2EPageState extends State<B2EPage> {
-  final url = 'http://stimeapp.snapshot.co.jp/ss/login';
-  String csrf = "";
-  String userId = "";
-  String password = "";
-
-  //final myController = TextEditingController();
+class _MyAppState extends State<MyApp> {
+  static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+  Map<String, dynamic> _deviceData = <String, dynamic>{};
 
   @override
   void initState() {
-    //アプリ起動時に一度だけ実行される
-    getCsrf();
+    super.initState();
+    initPlatformState();
   }
 
-  //CSRFトークンを取得する(htmlからスクレイピングする)
-  void getCsrf() async {
+  Future<void> initPlatformState() async {
+    Map<String, dynamic> deviceData = <String, dynamic>{};
+
     try {
-      final response = await http.get(Uri.parse(url));
-      final document = parse(response.body);
-      final result = document.querySelector('[name="_csrf"]');
-      print(result?.attributes['value']);
-      csrf = result?.attributes['value'] ?? "";
-    } catch (e) {
-      throw Exception();
-    }
-  }
-
-  //機種個体識別番号を登録する
-  void pushRegisterDevicePage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RegisterDevice(),
-      ),
-    );
-  }
-
-  //ログインに必要な情報をpostする
-  void handleSignUp(csrf, userId, password) async {
-    print(csrf);
-    print(userId);
-    print(password);
-
-    var headers = {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Cookie': 'JSESSIONID=223377849891C22A16595ECBB4109A0B'
-    };
-    var request = http.Request(
-        'POST', Uri.parse('http://stimeapp.snapshot.co.jp/ss/login'));
-    request.bodyFields = {
-      'userName': userId,
-      'password': password,
-      '_csrf': csrf
-    };
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    //response-header に X-B2EPRO-Login: true というヘッダが含まれている場合はログイン失敗
-    //含まれていない場合はログイン成功
-
-    if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-    } else {
-      print(response.reasonPhrase);
+      if (Platform.isAndroid) {
+        deviceData = _readAndroidBuildData(await deviceInfoPlugin.androidInfo);
+      } else if (Platform.isIOS) {
+        deviceData = _readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
+      }
+    } on PlatformException {
+      deviceData = <String, dynamic>{
+        'Error:': 'Failed to get platform version.'
+      };
     }
 
-    //成功した場合、それぞれの機種の個体識別番号を登録する
-    pushRegisterDevicePage();
+    if (!mounted) return;
+
+    setState(() {
+      _deviceData = deviceData;
+    });
+  }
+
+  Map<String, dynamic> _readAndroidBuildData(AndroidDeviceInfo build) {
+    return <String, dynamic>{
+      'version.securityPatch': build.version.securityPatch,
+      'version.sdkInt': build.version.sdkInt,
+      'version.release': build.version.release,
+      'version.previewSdkInt': build.version.previewSdkInt,
+      'version.incremental': build.version.incremental,
+      'version.codename': build.version.codename,
+      'version.baseOS': build.version.baseOS,
+      'board': build.board,
+      'bootloader': build.bootloader,
+      'brand': build.brand,
+      'device': build.device,
+      'display': build.display,
+      'fingerprint': build.fingerprint,
+      'hardware': build.hardware,
+      'host': build.host,
+      'id': build.id,
+      'manufacturer': build.manufacturer,
+      'model': build.model,
+      'product': build.product,
+      'supported32BitAbis': build.supported32BitAbis,
+      'supported64BitAbis': build.supported64BitAbis,
+      'supportedAbis': build.supportedAbis,
+      'tags': build.tags,
+      'type': build.type,
+      'isPhysicalDevice': build.isPhysicalDevice,
+      'androidId': build.androidId,
+      'systemFeatures': build.systemFeatures,
+    };
+  }
+
+  Map<String, dynamic> _readIosDeviceInfo(IosDeviceInfo data) {
+    return <String, dynamic>{
+      'name': data.name,
+      'systemName': data.systemName,
+      'systemVersion': data.systemVersion,
+      'model': data.model,
+      'localizedModel': data.localizedModel,
+      'identifierForVendor': data.identifierForVendor,
+      'isPhysicalDevice': data.isPhysicalDevice,
+      'utsname.sysname:': data.utsname.sysname,
+      'utsname.nodename:': data.utsname.nodename,
+      'utsname.release:': data.utsname.release,
+      'utsname.version:': data.utsname.version,
+      'utsname.machine:': data.utsname.machine,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 1, 79, 15),
-        centerTitle: true,
-        title: Text('B2Epro - flutter', style: TextStyle(color: Colors.white)),
-      ),
-      body: SizedBox(
-        width: double.infinity,
-        child: Column(
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                hintText: 'userId',
-              ),
-              onChanged: (value) {
-                userId = value;
-              },
-            ),
-            TextField(
-              //controller: myController,
-              decoration: const InputDecoration(
-                hintText: 'password',
-              ),
-              onChanged: (value) {
-                password = value;
-              },
-            ),
-            OutlinedButton(
-              child: const Text('SEND'),
-              onPressed: () {
-                handleSignUp(csrf, userId, password);
-              },
-            ),
-            OutlinedButton(
-              onPressed: () => {pushRegisterDevicePage()},
-              child: const Text('SIGNUP'),
-            ),
-          ],
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(
+              Platform.isAndroid ? 'Android Device Info' : 'iOS Device Info'),
+        ),
+        body: ListView(
+          children: _deviceData.keys.map((String property) {
+            return Row(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Text(
+                    property,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                    child: Container(
+                  padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+                  child: Text(
+                    '${_deviceData[property]}',
+                    maxLines: 10,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                )),
+              ],
+            );
+          }).toList(),
         ),
       ),
     );
