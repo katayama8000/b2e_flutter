@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+//import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 
@@ -30,6 +30,11 @@ class B2EPage extends StatefulWidget {
 
 class _B2EPageState extends State<B2EPage> {
   final url = 'http://stimeapp.snapshot.co.jp/ss/login';
+  String csrf = "";
+  late String userId;
+  late String password;
+
+  //final myController = TextEditingController();
 
   @override
   void initState() {
@@ -44,6 +49,9 @@ class _B2EPageState extends State<B2EPage> {
       final document = parse(response.body);
       final result = document.querySelector('[name="_csrf"]');
       print(result?.attributes['value']);
+      setState(() {
+        csrf = result?.attributes['value'] ?? "";
+      });
     } catch (e) {
       throw Exception();
     }
@@ -53,21 +61,39 @@ class _B2EPageState extends State<B2EPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 3, 103, 21),
+        backgroundColor: Color.fromARGB(255, 1, 79, 15),
         centerTitle: true,
-        // title: Image.network(
-        //   'http://stimeapp.snapshot.co.jp/ss/share/base/logo',
-        // ),
         title: Text('B2Epro - flutter', style: TextStyle(color: Colors.white)),
       ),
-      body: Center(
+      body: SizedBox(
+        width: double.infinity,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text("ユーザーID"),
-            TextField(),
-            Text("パスワード"),
-            TextField(),
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                hintText: 'userId',
+              ),
+              onChanged: (value) {
+                userId = value;
+              },
+            ),
+            TextField(
+              //controller: myController,
+              decoration: const InputDecoration(
+                hintText: 'password',
+              ),
+              onChanged: (value) {
+                password = value;
+              },
+            ),
+            OutlinedButton(
+              child: const Text('SEND'),
+              onPressed: () {
+                print(csrf);
+                print(userId);
+                print(password);
+              },
+            ),
           ],
         ),
       ),
