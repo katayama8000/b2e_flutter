@@ -1,20 +1,29 @@
-import 'dart:async';
+// Copyright 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
+// ignore_for_file: public_member_api_docs
+
+import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:device_info/device_info.dart';
 
 void main() {
   runZonedGuarded(() {
-    runApp(MyApp());
+    runApp(const MyApp());
   }, (dynamic error, dynamic stack) {
-    print(error);
-    print(stack);
+    developer.log("Something went wrong!", error: error, stackTrace: stack);
   });
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -30,13 +39,25 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initPlatformState() async {
-    Map<String, dynamic> deviceData = <String, dynamic>{};
+    var deviceData = <String, dynamic>{};
 
     try {
-      if (Platform.isAndroid) {
-        deviceData = _readAndroidBuildData(await deviceInfoPlugin.androidInfo);
-      } else if (Platform.isIOS) {
-        deviceData = _readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
+      if (kIsWeb) {
+        deviceData = _readWebBrowserInfo(await deviceInfoPlugin.webBrowserInfo);
+      } else {
+        if (Platform.isAndroid) {
+          deviceData =
+              _readAndroidBuildData(await deviceInfoPlugin.androidInfo);
+        } else if (Platform.isIOS) {
+          deviceData = _readIosDeviceInfo(await deviceInfoPlugin.iosInfo);
+        } else if (Platform.isLinux) {
+          deviceData = _readLinuxDeviceInfo(await deviceInfoPlugin.linuxInfo);
+        } else if (Platform.isMacOS) {
+          deviceData = _readMacOsDeviceInfo(await deviceInfoPlugin.macOsInfo);
+        } else if (Platform.isWindows) {
+          deviceData =
+              _readWindowsDeviceInfo(await deviceInfoPlugin.windowsInfo);
+        }
       }
     } on PlatformException {
       deviceData = <String, dynamic>{
@@ -100,39 +121,113 @@ class _MyAppState extends State<MyApp> {
     };
   }
 
+  Map<String, dynamic> _readLinuxDeviceInfo(LinuxDeviceInfo data) {
+    return <String, dynamic>{
+      'name': data.name,
+      'version': data.version,
+      'id': data.id,
+      'idLike': data.idLike,
+      'versionCodename': data.versionCodename,
+      'versionId': data.versionId,
+      'prettyName': data.prettyName,
+      'buildId': data.buildId,
+      'variant': data.variant,
+      'variantId': data.variantId,
+      'machineId': data.machineId,
+    };
+  }
+
+  Map<String, dynamic> _readWebBrowserInfo(WebBrowserInfo data) {
+    return <String, dynamic>{
+      'browserName': describeEnum(data.browserName),
+      'appCodeName': data.appCodeName,
+      'appName': data.appName,
+      'appVersion': data.appVersion,
+      'deviceMemory': data.deviceMemory,
+      'language': data.language,
+      'languages': data.languages,
+      'platform': data.platform,
+      'product': data.product,
+      'productSub': data.productSub,
+      'userAgent': data.userAgent,
+      'vendor': data.vendor,
+      'vendorSub': data.vendorSub,
+      'hardwareConcurrency': data.hardwareConcurrency,
+      'maxTouchPoints': data.maxTouchPoints,
+    };
+  }
+
+  Map<String, dynamic> _readMacOsDeviceInfo(MacOsDeviceInfo data) {
+    return <String, dynamic>{
+      'computerName': data.computerName,
+      'hostName': data.hostName,
+      'arch': data.arch,
+      'model': data.model,
+      'kernelVersion': data.kernelVersion,
+      'osRelease': data.osRelease,
+      'activeCPUs': data.activeCPUs,
+      'memorySize': data.memorySize,
+      'cpuFrequency': data.cpuFrequency,
+      'systemGUID': data.systemGUID,
+    };
+  }
+
+  Map<String, dynamic> _readWindowsDeviceInfo(WindowsDeviceInfo data) {
+    return <String, dynamic>{
+      'numberOfCores': data.numberOfCores,
+      'computerName': data.computerName,
+      'systemMemoryInMegabytes': data.systemMemoryInMegabytes,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
           title: Text(
-              Platform.isAndroid ? 'Android Device Info' : 'iOS Device Info'),
+            kIsWeb
+                ? 'Web Browser info'
+                : Platform.isAndroid
+                    ? 'Android Device Info'
+                    : Platform.isIOS
+                        ? 'iOS Device Info'
+                        : Platform.isLinux
+                            ? 'Linux Device Info'
+                            : Platform.isMacOS
+                                ? 'MacOS Device Info'
+                                : Platform.isWindows
+                                    ? 'Windows Device Info'
+                                    : '',
+          ),
         ),
         body: ListView(
-          children: _deviceData.keys.map((String property) {
-            return Row(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text(
-                    property,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+          children: _deviceData.keys.map(
+            (String property) {
+              return Row(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(
+                      property,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                    child: Container(
-                  padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-                  child: Text(
-                    '${_deviceData[property]}',
-                    maxLines: 10,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                )),
-              ],
-            );
-          }).toList(),
+                  Expanded(
+                      child: Container(
+                    padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+                    child: Text(
+                      '${_deviceData[property]}',
+                      maxLines: 10,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )),
+                ],
+              );
+            },
+          ).toList(),
         ),
       ),
     );
