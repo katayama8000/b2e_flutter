@@ -1,7 +1,3 @@
-# b2e_flutter
+とりあえず保存しておくだけのブランチ</br>
 
-A new Flutter project.
-
-## B2Epro
-
-人事パッケージB2Eproのスマホアプリ版レポジトリ
+### 後で消す！！！
