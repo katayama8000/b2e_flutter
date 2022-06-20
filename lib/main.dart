@@ -36,13 +36,6 @@ class _B2EPageState extends State<B2EPage> {
   String password = "";
   String deviceId = "";
 
-  @override
-  void initState() {
-    //アプリ起動時に一度だけ実行される
-    getCsrf();
-    getDeviceInfo();
-  }
-
   void getDeviceInfo() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     AndroidDeviceInfo info = await deviceInfo.androidInfo;
@@ -51,10 +44,30 @@ class _B2EPageState extends State<B2EPage> {
     print(deviceId);
   }
 
+  Future<void> getTopPage(url) async {
+    var headers = {
+      'cookie':
+          'JSESSIONID=24C43D3434A4A1877B3ED91E74A3BBF3; JSESSIONID=8E1CA7A0C2A67B81B946BD30894626AE'
+    };
+    var request =
+        http.Request('GET', Uri.parse('http://stimeapp.snapshot.co.jp/ss/top'));
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+    print(response.statusCode);
+    print(response.headers);
+    String html = await response.stream.bytesToString();
+
+    final document = parse(html);
+    print(document.querySelector('#emp-name')?.text);
+  }
+
   //CSRFトークンを取得する(htmlからスクレイピングする)
   void getCsrf() async {
     try {
       final response = await http.get(Uri.parse(url));
+      print(response.body);
       final document = parse(response.body);
       final result = document.querySelector('[name="_csrf"]');
       print(result?.attributes['value']);
@@ -79,38 +92,35 @@ class _B2EPageState extends State<B2EPage> {
     print(csrf);
     print(userId);
     print(password);
+    print("----------------------------------------------------");
 
-    var headers = {
-      'X-Requested-With': 'XMLHttpRequest',
-      'Content-Type': 'application/x-www-form-urlencoded',
-    };
-    var request = http.Request(
-        'POST', Uri.parse('http://stimeapp.snapshot.co.jp/ss/login'));
-    request.bodyFields = {
+    var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
+    var response = await http.post(url, body: {
       'userName': '1000100072',
       'password': '3edcvbnm',
-      '_csrf': csrf,
-    };
-    request.headers.addAll(headers);
+      '_csrf': csrf
+    });
 
-    http.StreamedResponse response = await request.send();
-
-    print(response.headers);
-    print(response.statusCode);
-    print(response);
-    print(await response.stream.bytesToString());
-
-    // var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
-    // var response = await http.post(url, body: {
-    //   'userName': '1000100072',
-    //   'password': '3edcvbnm',
-    //   '_csrf': csrf
-    // });
-    // print('Response status: ${response.statusCode}');
-    // print('Response body: ${response.body}');
+    //リダイレクト成功
+    if (response.statusCode == 302) {
+      print("成功");
+      print(response.headers);
+      print(response.headers["set-cookie"]);
+      print(response.headers["location"]);
+      getTopPage(response.headers["location"]);
+    } else {
+      print("失敗");
+    }
 
     //成功した場合、それぞれの機種の個体識別番号を登録す
     //pushRegisterDevicePage();
+  }
+
+  @override
+  void initState() {
+    //アプリ起動時に一度だけ実行される
+    getCsrf();
+    getDeviceInfo();
   }
 
   @override
