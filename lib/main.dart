@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
-//機種の個別識別番号を取得する
-import 'package:device_info_plus/device_info_plus.dart';
 //toast
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -39,7 +37,6 @@ class _B2EPageState extends State<B2EPage> {
   String csrf = "";
   String userId = "";
   String password = "";
-  String deviceId = "";
   String location = "";
   String jsessionid = "";
 
@@ -65,15 +62,6 @@ class _B2EPageState extends State<B2EPage> {
         backgroundColor: Colors.red,
         textColor: Colors.white,
         fontSize: 16.0);
-  }
-
-  //機種の個別識別番号を取得する
-  void getDeviceInfo() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    AndroidDeviceInfo info = await deviceInfo.androidInfo;
-    var tmp = info.toMap();
-    deviceId = tmp["id"];
-    print(deviceId);
   }
 
   //成功したら、dashboardのHTMLを取得する
@@ -144,20 +132,19 @@ class _B2EPageState extends State<B2EPage> {
       location = response.headers["location"]!;
       jsessionid = response.headers["set-cookie"]!.substring(11, 43);
 
-      getTopPage(location, jsessionid);
+      //getTopPage(location, jsessionid);
     } else {
       showToastFail("ログインに失敗");
     }
 
     //成功した場合、それぞれの機種の個体識別番号を登録す
-    //pushRegisterDevicePage();
+    pushRegisterDevicePage();
   }
 
   @override
   void initState() {
     //アプリ起動時に一度だけ実行される
     getCsrf();
-    getDeviceInfo();
   }
 
   @override
