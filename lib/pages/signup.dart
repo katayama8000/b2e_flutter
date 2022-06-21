@@ -13,7 +13,7 @@ class _RegisterDeviceState extends State<RegisterDevice> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 1, 79, 15),
+        backgroundColor: Color.fromARGB(255, 120, 86, 255),
         centerTitle: true,
         title: Text('B2Epro - flutter', style: TextStyle(color: Colors.white)),
       ),

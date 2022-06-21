@@ -131,11 +131,6 @@ class _B2EPageState extends State<B2EPage> {
 
   //ログインに必要な情報をpostする
   void handleSignUp(csrf, userId, password) async {
-    print(csrf);
-    print(userId);
-    print(password);
-    print("----------------------------------------------------");
-
     var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
     var response = await http.post(url, body: {
       'userName': '1000100072',
@@ -146,14 +141,6 @@ class _B2EPageState extends State<B2EPage> {
     //リダイレクト成功
     if (response.statusCode == 302) {
       showToast("ログインに成功");
-      // print("成功");
-      // print("----------------------this is coolkie---------------------------");
-      // print(response.headers["set-cookie"]);
-      // print(response.headers["set-cookie"] is String);
-      // print(response.headers["set-cookie"]?.substring(11, 43));
-      // print("----------------------this is coolkie---------------------------");
-      // print(response.headers["location"]);
-      // print(response.headers["location"] is String);
       location = response.headers["location"]!;
       jsessionid = response.headers["set-cookie"]!.substring(11, 43);
 
@@ -177,46 +164,57 @@ class _B2EPageState extends State<B2EPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 1, 79, 15),
+        backgroundColor: Color.fromARGB(255, 120, 86, 255),
         centerTitle: true,
         title: Text('B2Epro - flutter', style: TextStyle(color: Colors.white)),
       ),
       body: SizedBox(
         width: double.infinity,
-        child: Column(
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                hintText: 'userId',
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'userId',
+                  ),
+                  onChanged: (value) {
+                    userId = value;
+                  },
+                ),
               ),
-              onChanged: (value) {
-                userId = value;
-              },
-            ),
-            TextField(
-              //controller: myController,
-              decoration: const InputDecoration(
-                hintText: 'password',
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                child: TextField(
+                  //controller: myController,
+                  decoration: const InputDecoration(
+                    hintText: 'password',
+                  ),
+                  onChanged: (value) {
+                    password = value;
+                  },
+                ),
               ),
-              onChanged: (value) {
-                password = value;
-              },
-            ),
-            OutlinedButton(
-              child: const Text('SEND'),
-              onPressed: () {
-                handleSignUp(csrf, userId, password);
-              },
-            ),
-            OutlinedButton(
-              onPressed: () => {pushRegisterDevicePage()},
-              child: const Text('登録'),
-            ),
-            OutlinedButton(
-              onPressed: () => {pushDashBoardPage()},
-              child: const Text('ダッシュボード'),
-            ),
-          ],
+              OutlinedButton(
+                child: const Text('Login'),
+                onPressed: () {
+                  handleSignUp(csrf, userId, password);
+                },
+              ),
+              OutlinedButton(
+                onPressed: () => {pushRegisterDevicePage()},
+                child: const Text('機種識別番号登録'),
+              ),
+              OutlinedButton(
+                onPressed: () => {pushDashBoardPage()},
+                child: const Text('ダッシュボード'),
+              ),
+            ],
+          ),
         ),
       ),
     );

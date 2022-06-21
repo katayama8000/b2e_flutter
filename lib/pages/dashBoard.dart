@@ -80,31 +80,62 @@ class _DashBoardState extends State<DashBoard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 1, 79, 15),
+        backgroundColor: Color.fromARGB(255, 120, 86, 255),
         centerTitle: true,
         title:
             Text('B2Epro - Dashborad', style: TextStyle(color: Colors.white)),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            OutlinedButton(
-              onPressed: () => {work("00")},
-              child: const Text('出勤'),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 32.0),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 200,
+                    height: 60,
+                    child: ElevatedButton(
+                      child: const Text('出勤',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                          primary: Color.fromARGB(255, 120, 86, 255),
+                          onPrimary: Colors.white),
+                      onPressed: () => {work("00")},
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 200,
+                    height: 60,
+                    child: ElevatedButton(
+                      child: const Text('退勤',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                          primary: Color.fromARGB(255, 120, 86, 255),
+                          onPrimary: Colors.white),
+                      onPressed: () => {work("00")},
+                    ),
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: () => {
+                    print(getLocalTime()),
+                  },
+                  child: const Text('時間を取得'),
+                ),
+              ],
             ),
-            OutlinedButton(
-              onPressed: () => {
-                print(work("00")),
-              },
-              child: const Text('退勤'),
-            ),
-            OutlinedButton(
-              onPressed: () => {
-                print(getLocalTime()),
-              },
-              child: const Text('時間を取得'),
-            ),
-          ],
+          ),
         ),
       ),
     );
