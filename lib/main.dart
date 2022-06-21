@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
-import 'pages/signup.dart';
+//機種の個別識別番号を取得する
 import 'package:device_info_plus/device_info_plus.dart';
+
+import 'pages/signup.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +37,10 @@ class _B2EPageState extends State<B2EPage> {
   String userId = "";
   String password = "";
   String deviceId = "";
+  String location = "";
+  String jsessionid = "";
 
+  //機種の個別識別番号を取得する
   void getDeviceInfo() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     AndroidDeviceInfo info = await deviceInfo.androidInfo;
@@ -44,10 +49,11 @@ class _B2EPageState extends State<B2EPage> {
     print(deviceId);
   }
 
-  Future<void> getTopPage(url) async {
+  //成功したら、dashboardのHTMLを取得する
+  Future<void> getTopPage(url, jsessionid) async {
     var headers = {
       'cookie':
-          'JSESSIONID=24C43D3434A4A1877B3ED91E74A3BBF3; JSESSIONID=8E1CA7A0C2A67B81B946BD30894626AE'
+          'JSESSIONID=$jsessionid; JSESSIONID=8E1CA7A0C2A67B81B946BD30894626AE'
     };
     var request =
         http.Request('GET', Uri.parse('http://stimeapp.snapshot.co.jp/ss/top'));
@@ -67,10 +73,9 @@ class _B2EPageState extends State<B2EPage> {
   void getCsrf() async {
     try {
       final response = await http.get(Uri.parse(url));
-      print(response.body);
       final document = parse(response.body);
       final result = document.querySelector('[name="_csrf"]');
-      print(result?.attributes['value']);
+      //print(result?.attributes['value']);
       csrf = result?.attributes['value'] ?? "";
     } catch (e) {
       throw Exception();
@@ -104,10 +109,17 @@ class _B2EPageState extends State<B2EPage> {
     //リダイレクト成功
     if (response.statusCode == 302) {
       print("成功");
-      print(response.headers);
+      print("----------------------this is coolkie---------------------------");
       print(response.headers["set-cookie"]);
+      print(response.headers["set-cookie"] is String);
+      print(response.headers["set-cookie"]?.substring(11, 43));
+      print("----------------------this is coolkie---------------------------");
       print(response.headers["location"]);
-      getTopPage(response.headers["location"]);
+      print(response.headers["location"] is String);
+      location = response.headers["location"]!;
+      jsessionid = response.headers["set-cookie"]!.substring(11, 43);
+
+      getTopPage(location, jsessionid);
     } else {
       print("失敗");
     }
