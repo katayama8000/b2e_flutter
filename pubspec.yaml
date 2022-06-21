@@ -39,6 +39,10 @@ dependencies:
   html: ^0.15.0
   dio: ^4.0.6
   device_info_plus: ^3.2.4
+  fluttertoast: ^8.0.9
+  intl: ^0.17.0
+  flutter_local_notifications: ^9.6.1
+  timezone: ^0.8.0
 
 dev_dependencies:
   flutter_test:

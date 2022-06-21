@@ -3,8 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 //機種の個別識別番号を取得する
 import 'package:device_info_plus/device_info_plus.dart';
+//toast
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'pages/signup.dart';
+import 'pages/dashBoard.dart';
 
 void main() {
   runApp(const MyApp());
@@ -40,6 +43,30 @@ class _B2EPageState extends State<B2EPage> {
   String location = "";
   String jsessionid = "";
 
+  //toast成功
+  void showToast(String msg) {
+    Fluttertoast.showToast(
+        msg: msg,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
+  //toast失敗
+  void showToastFail(String msg) {
+    Fluttertoast.showToast(
+        msg: msg,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
   //機種の個別識別番号を取得する
   void getDeviceInfo() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -67,6 +94,7 @@ class _B2EPageState extends State<B2EPage> {
 
     final document = parse(html);
     print(document.querySelector('#emp-name')?.text);
+    pushDashBoardPage();
   }
 
   //CSRFトークンを取得する(htmlからスクレイピングする)
@@ -82,12 +110,21 @@ class _B2EPageState extends State<B2EPage> {
     }
   }
 
-  //機種個体識別番号を登録する
+  //機種個体識別番号を登録するページに移動
   void pushRegisterDevicePage() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => RegisterDevice(),
+      ),
+    );
+  }
+
+  void pushDashBoardPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DashBoard(),
       ),
     );
   }
@@ -108,20 +145,21 @@ class _B2EPageState extends State<B2EPage> {
 
     //リダイレクト成功
     if (response.statusCode == 302) {
-      print("成功");
-      print("----------------------this is coolkie---------------------------");
-      print(response.headers["set-cookie"]);
-      print(response.headers["set-cookie"] is String);
-      print(response.headers["set-cookie"]?.substring(11, 43));
-      print("----------------------this is coolkie---------------------------");
-      print(response.headers["location"]);
-      print(response.headers["location"] is String);
+      showToast("ログインに成功");
+      // print("成功");
+      // print("----------------------this is coolkie---------------------------");
+      // print(response.headers["set-cookie"]);
+      // print(response.headers["set-cookie"] is String);
+      // print(response.headers["set-cookie"]?.substring(11, 43));
+      // print("----------------------this is coolkie---------------------------");
+      // print(response.headers["location"]);
+      // print(response.headers["location"] is String);
       location = response.headers["location"]!;
       jsessionid = response.headers["set-cookie"]!.substring(11, 43);
 
       getTopPage(location, jsessionid);
     } else {
-      print("失敗");
+      showToastFail("ログインに失敗");
     }
 
     //成功した場合、それぞれの機種の個体識別番号を登録す
@@ -172,7 +210,11 @@ class _B2EPageState extends State<B2EPage> {
             ),
             OutlinedButton(
               onPressed: () => {pushRegisterDevicePage()},
-              child: const Text('Move!!!'),
+              child: const Text('登録'),
+            ),
+            OutlinedButton(
+              onPressed: () => {pushDashBoardPage()},
+              child: const Text('ダッシュボード'),
             ),
           ],
         ),
