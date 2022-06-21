@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 //機種の個別識別番号を取得する
 import 'package:device_info_plus/device_info_plus.dart';
 
@@ -17,6 +18,7 @@ class _RegisterDeviceState extends State<RegisterDevice> {
     //アプリ起動時に一度だけ実行される
     print("initState");
     getDeviceInfo();
+    registerDeviceId();
   }
 
   //機種の個別識別番号を取得する
@@ -26,6 +28,19 @@ class _RegisterDeviceState extends State<RegisterDevice> {
     var tmp = info.toMap();
     deviceId = tmp["id"];
     print(deviceId);
+  }
+
+  registerDeviceId() async {
+    var url =
+        Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
+    var response = await http.post(url, body: {
+      'cardId': '1010212',
+      'employeeNo': '100072',
+      'companyCode': '1000',
+      'updateEmployeeId': '0',
+    });
+
+    print(response.body);
   }
 
   @override

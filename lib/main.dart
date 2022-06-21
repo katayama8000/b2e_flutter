@@ -35,10 +35,11 @@ class B2EPage extends StatefulWidget {
 class _B2EPageState extends State<B2EPage> {
   final url = 'http://stimeapp.snapshot.co.jp/ss/login';
   String csrf = "";
-  String userId = "";
+  String userId = "1000100072";
   String password = "";
   String location = "";
   String jsessionid = "";
+  String employeeNo = "";
 
   //toast成功
   void showToast(String msg) {
@@ -62,6 +63,11 @@ class _B2EPageState extends State<B2EPage> {
         backgroundColor: Colors.red,
         textColor: Colors.white,
         fontSize: 16.0);
+  }
+
+  makeemployeeNo(String userID) async {
+    String employeeNo = userID.substring(4, userID.length);
+    //print(employeeNo);
   }
 
   //成功したら、dashboardのHTMLを取得する
@@ -120,11 +126,8 @@ class _B2EPageState extends State<B2EPage> {
   //ログインに必要な情報をpostする
   void handleSignUp(csrf, userId, password) async {
     var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
-    var response = await http.post(url, body: {
-      'userName': '1000100072',
-      'password': '3edcvbnm',
-      '_csrf': csrf
-    });
+    var response = await http.post(url,
+        body: {'userName': userId, 'password': '3edcvbnm', '_csrf': csrf});
 
     //リダイレクト成功
     if (response.statusCode == 302) {
@@ -139,6 +142,22 @@ class _B2EPageState extends State<B2EPage> {
 
     //成功した場合、それぞれの機種の個体識別番号を登録す
     pushRegisterDevicePage();
+  }
+
+  registerDeviceId() async {
+    //String employeeNo = makeemployeeNo(userId);
+    makeemployeeNo(userId);
+    var url =
+        Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
+    var response = await http.post(url, body: {
+      'cardId': '1010212',
+      'employeeNo': employeeNo,
+      'companyCode': '1000',
+      'updateEmployeeId': '0',
+    });
+
+    print(response.statusCode);
+    print(response.body);
   }
 
   @override
@@ -199,6 +218,14 @@ class _B2EPageState extends State<B2EPage> {
               OutlinedButton(
                 onPressed: () => {pushDashBoardPage()},
                 child: const Text('ダッシュボード'),
+              ),
+              OutlinedButton(
+                onPressed: () => {makeemployeeNo(userId)},
+                child: const Text('makeemployeeNo'),
+              ),
+              OutlinedButton(
+                onPressed: () => {registerDeviceId()},
+                child: const Text('登録'),
               ),
             ],
           ),
