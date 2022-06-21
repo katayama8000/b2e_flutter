@@ -82,8 +82,8 @@ class _DashBoardState extends State<DashBoard> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 120, 86, 255),
         centerTitle: true,
-        title:
-            Text('B2Epro - Dashborad', style: TextStyle(color: Colors.white)),
+        title: const Text('B2Epro - Dashborad',
+            style: TextStyle(color: Colors.white)),
       ),
       body: SafeArea(
         child: Center(
@@ -91,42 +91,8 @@ class _DashBoardState extends State<DashBoard> {
             padding: const EdgeInsets.only(top: 32.0),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: 200,
-                    height: 60,
-                    child: ElevatedButton(
-                      child: const Text('出勤',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                          primary: Color.fromARGB(255, 120, 86, 255),
-                          onPrimary: Colors.white),
-                      onPressed: () => {work("00")},
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: 200,
-                    height: 60,
-                    child: ElevatedButton(
-                      child: const Text('退勤',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                          primary: Color.fromARGB(255, 120, 86, 255),
-                          onPrimary: Colors.white),
-                      onPressed: () => {work("00")},
-                    ),
-                  ),
-                ),
+                RegisterButton(label: "出勤", onPressed: () => work("00")),
+                RegisterButton(label: "退勤", onPressed: () => work("00")),
                 OutlinedButton(
                   onPressed: () => {
                     print(getLocalTime()),
@@ -136,6 +102,35 @@ class _DashBoardState extends State<DashBoard> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class RegisterButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  RegisterButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SizedBox(
+        width: 200,
+        height: 60,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              primary: const Color.fromARGB(255, 120, 86, 255),
+              onPrimary: Colors.white),
+          onPressed: onPressed,
+          child: Text(label,
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold)),
         ),
       ),
     );
