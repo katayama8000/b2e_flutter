@@ -4,7 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
 
 class RegisterDevice extends StatefulWidget {
-  const RegisterDevice({Key? key}) : super(key: key);
+  String employeeNo;
+  RegisterDevice(this.employeeNo, {Key? key}) : super(key: key);
+
+  // String userName;
+  // DashBoard(this.userName, {Key? key}) : super(key: key);
 
   @override
   State<RegisterDevice> createState() => _RegisterDeviceState();
@@ -18,7 +22,6 @@ class _RegisterDeviceState extends State<RegisterDevice> {
     //アプリ起動時に一度だけ実行される
     print("initState");
     getDeviceInfo();
-    registerDeviceId();
   }
 
   //機種の個別識別番号を取得する
@@ -31,16 +34,19 @@ class _RegisterDeviceState extends State<RegisterDevice> {
   }
 
   registerDeviceId() async {
+    print(deviceId);
+    print(widget.employeeNo);
     var url =
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
     var response = await http.post(url, body: {
-      'cardId': '1010212',
-      'employeeNo': '100072',
+      'cardId': deviceId,
+      'employeeNo': widget.employeeNo,
       'companyCode': '1000',
       'updateEmployeeId': '0',
     });
 
     print(response.body);
+    print("デバイスを登録しました！");
   }
 
   @override
@@ -57,6 +63,17 @@ class _RegisterDeviceState extends State<RegisterDevice> {
             padding: const EdgeInsets.only(top: 32.0),
             child: Column(
               children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      primary: const Color.fromARGB(255, 120, 86, 255),
+                      onPrimary: Colors.white),
+                  onPressed: () => {print(widget.employeeNo)},
+                  child: Text("Press to Confirm",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold)),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: SizedBox(
@@ -66,10 +83,8 @@ class _RegisterDeviceState extends State<RegisterDevice> {
                       style: ElevatedButton.styleFrom(
                           primary: const Color.fromARGB(255, 120, 86, 255),
                           onPrimary: Colors.white),
-                      onPressed: () => {
-                        print("ボタンを押した"),
-                      },
-                      child: Text('機種識別番号を登録',
+                      onPressed: () => {registerDeviceId()},
+                      child: Text(widget.employeeNo,
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 24,

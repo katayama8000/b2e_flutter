@@ -2,49 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 //toast
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:b2e_flutter/service/toast.dart';
 //現在時刻を取得
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class DashBoard extends StatefulWidget {
-  String userName;
-  DashBoard(this.userName, {Key? key}) : super(key: key);
+  String cardId;
+  String employeeNo;
+  DashBoard(this.cardId, this.employeeNo, {Key? key}) : super(key: key);
 
   @override
   State<DashBoard> createState() => _DashBoardState();
 }
 
 class _DashBoardState extends State<DashBoard> {
-  //toast成功
-  void showToast(String msg) {
-    Fluttertoast.showToast(
-        msg: msg,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.blue,
-        textColor: Colors.white,
-        fontSize: 16.0);
-  }
-
-  //toast失敗
-  void showToastFail(String msg) {
-    Fluttertoast.showToast(
-        msg: msg,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0);
-  }
-
   //時間を取得
   String getLocalTime() {
-    // タイムゾーンデータベースの初期化
     tz.initializeTimeZones();
-    // ローカルロケーションのタイムゾーンを東京に設定
     tz.setLocalLocation(tz.getLocation("Asia/Tokyo"));
     var now = tz.TZDateTime.now(tz.local);
     return ('${now.hour}時${now.minute}分');
@@ -59,7 +34,7 @@ class _DashBoardState extends State<DashBoard> {
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/recordTime'));
     request.bodyFields = {
       'inoutType': inOutType,
-      'cardId': '1010212',
+      'cardId': widget.cardId,
     };
     request.headers.addAll(headers);
 
@@ -68,18 +43,21 @@ class _DashBoardState extends State<DashBoard> {
     String workState = inOutType == "1" ? "出勤" : "退勤";
     if (response.statusCode == 200) {
       var ret = await response.stream.bytesToString();
-      print(ret);
-      bool res = ret.contains(widget.userName);
+      int start = ret.indexOf("empName");
+      String userName =
+          ret.substring(start + "empName".length + 3, ret.length - 2);
+      print(userName);
+
+      bool res = ret.contains(widget.employeeNo);
       if (res) {
-        String finishWorKingTime = getLocalTime();
-        showToast('$finishWorKingTime/$workStateしました');
+        String now = getLocalTime();
+        ToastService.showSuccessToast('$userNameさんは\n$nowに$workStateしました');
       } else {
-        print(response.reasonPhrase);
-        showToastFail('$workStateに失敗しました');
+        ToastService.showFailureToast('$userNameさんは\n$workStateに失敗しました');
       }
     } else {
       print(response.reasonPhrase);
-      showToastFail('$workStateに失敗しました');
+      ToastService.showFailureToast('再度やり直してください');
     }
   }
 
@@ -101,7 +79,14 @@ class _DashBoardState extends State<DashBoard> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    widget.userName,
+                    widget.cardId,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    widget.employeeNo,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                   ),
                 ),
