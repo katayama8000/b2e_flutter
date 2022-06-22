@@ -8,7 +8,8 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class DashBoard extends StatefulWidget {
-  const DashBoard({Key? key}) : super(key: key);
+  String userName;
+  DashBoard(this.userName, {Key? key}) : super(key: key);
 
   @override
   State<DashBoard> createState() => _DashBoardState();
@@ -43,36 +44,42 @@ class _DashBoardState extends State<DashBoard> {
   String getLocalTime() {
     // タイムゾーンデータベースの初期化
     tz.initializeTimeZones();
-// ローカルロケーションのタイムゾーンを東京に設定
+    // ローカルロケーションのタイムゾーンを東京に設定
     tz.setLocalLocation(tz.getLocation("Asia/Tokyo"));
     var now = tz.TZDateTime.now(tz.local);
     return ('${now.hour}時${now.minute}分');
   }
 
-  //退勤
-  work(String inOutType) async {
+  //出退勤
+  registerInOut(String inOutType) async {
     var headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Cookie': 'JSESSIONID=D9A3AD5366ABEC5A8158FBA10F4723EF'
     };
     var request = http.Request('POST',
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/recordTime'));
     request.bodyFields = {
-      'inOutType': inOutType,
+      'inoutType': inOutType,
       'cardId': '1010212',
     };
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
 
+    String workState = inOutType == "1" ? "出勤" : "退勤";
     if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-      String finishWorlingTime = getLocalTime();
-
-      showToast('$finishWorlingTime/退勤しました');
+      var ret = await response.stream.bytesToString();
+      print(ret);
+      bool res = ret.contains(widget.userName);
+      if (res) {
+        String finishWorKingTime = getLocalTime();
+        showToast('$finishWorKingTime/$workStateしました');
+      } else {
+        print(response.reasonPhrase);
+        showToastFail('$workStateに失敗しました');
+      }
     } else {
       print(response.reasonPhrase);
-      showToastFail('退勤に失敗しました');
+      showToastFail('$workStateに失敗しました');
     }
   }
 
@@ -91,14 +98,17 @@ class _DashBoardState extends State<DashBoard> {
             padding: const EdgeInsets.only(top: 32.0),
             child: Column(
               children: [
-                RegisterButton(label: "出勤", onPressed: () => work("00")),
-                RegisterButton(label: "退勤", onPressed: () => work("00")),
-                OutlinedButton(
-                  onPressed: () => {
-                    print(getLocalTime()),
-                  },
-                  child: const Text('時間を取得'),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    widget.userName,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
                 ),
+                RegisterButton(
+                    label: "出勤", onPressed: () => registerInOut("1")),
+                RegisterButton(
+                    label: "退勤", onPressed: () => registerInOut("2")),
               ],
             ),
           ),

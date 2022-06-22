@@ -40,6 +40,7 @@ class _B2EPageState extends State<B2EPage> {
   String location = "";
   String jsessionid = "";
   String employeeNo = "";
+  String userName = "";
 
   //toast成功
   void showToast(String msg) {
@@ -87,7 +88,8 @@ class _B2EPageState extends State<B2EPage> {
     String html = await response.stream.bytesToString();
 
     final document = parse(html);
-    print(document.querySelector('#emp-name')?.text);
+    userName = document.querySelector('#emp-name')!.text;
+    print(userName);
     pushDashBoardPage();
   }
 
@@ -118,7 +120,7 @@ class _B2EPageState extends State<B2EPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DashBoard(),
+        builder: (context) => DashBoard(userName),
       ),
     );
   }
@@ -134,14 +136,14 @@ class _B2EPageState extends State<B2EPage> {
       showToast("ログインに成功");
       location = response.headers["location"]!;
       jsessionid = response.headers["set-cookie"]!.substring(11, 43);
-
-      //getTopPage(location, jsessionid);
+      print(jsessionid);
+      getTopPage(location, jsessionid);
     } else {
       showToastFail("ログインに失敗");
     }
 
     //成功した場合、それぞれの機種の個体識別番号を登録す
-    pushRegisterDevicePage();
+    //pushRegisterDevicePage();
   }
 
   registerDeviceId() async {
@@ -155,7 +157,6 @@ class _B2EPageState extends State<B2EPage> {
       'companyCode': '1000',
       'updateEmployeeId': '0',
     });
-
     print(response.statusCode);
     print(response.body);
   }
