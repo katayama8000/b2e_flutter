@@ -5,10 +5,8 @@ import 'package:html/parser.dart' show parse;
 //機種の個別識別番号を取得する
 import 'package:device_info_plus/device_info_plus.dart';
 //ページ
-import 'pages/signup.dart';
 import 'pages/dashBoard.dart';
 //メソッド
-import 'service/api.dart';
 import 'service/toast.dart';
 
 void main() {
@@ -17,7 +15,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -37,7 +34,6 @@ class B2EPage extends StatefulWidget {
 }
 
 class _B2EPageState extends State<B2EPage> {
-  final url = 'http://stimeapp.snapshot.co.jp/ss/login';
   String csrf = "";
   String userId = "";
   String password = "";
@@ -68,7 +64,8 @@ class _B2EPageState extends State<B2EPage> {
   //CSRFトークンを取得する(htmlからスクレイピングする)
   void getCsrf() async {
     try {
-      final response = await http.get(Uri.parse(url));
+      final response =
+          await http.get(Uri.parse("http://stimeapp.snapshot.co.jp/ss/login"));
       final document = parse(response.body);
       final result = document.querySelector('[name="_csrf"]');
       csrf = result?.attributes['value'] ?? "";
@@ -76,7 +73,7 @@ class _B2EPageState extends State<B2EPage> {
       throw Exception();
     }
     //機種識別番号がすでにあるのか調べる
-    //searchCardId();
+    searchCardId();
   }
 
   void pushDashBoardPage() {
@@ -113,6 +110,7 @@ class _B2EPageState extends State<B2EPage> {
     print(employeeNo);
     print("--------------------------");
     print(deviceId);
+
     var url =
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
     var response = await http.post(url, body: {
@@ -141,17 +139,21 @@ class _B2EPageState extends State<B2EPage> {
   }
 
   void searchCardId() async {
-    employeeNo = userId.substring(4, userId.length);
-    print(deviceId);
-    print(employeeNo);
     var url =
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/search');
     var response = await http.post(url, body: {
       'cardId': deviceId,
-      'employeeNo': employeeNo,
     });
 
-    print(response.body);
+    String ret = response.body;
+    print(ret);
+    int start = ret.indexOf("employeeNo");
+    print(start);
+    employeeNo = ret.substring(
+        start + "employeeNo".length + 3, start + "employeeNo".length + 9);
+    print(employeeNo);
+
+    //bool res = ret.contains(widget.employeeNo);
     if (response.body.contains(deviceId)) {
       print("登録済みなので移動");
       pushDashBoardPage();
@@ -209,22 +211,10 @@ class _B2EPageState extends State<B2EPage> {
                 ),
               ),
               OutlinedButton(
-                child: const Text('Login'),
+                child: const Text('機種識別番号登録'),
                 onPressed: () {
                   handleSignIn(csrf, userId, password);
                 },
-              ),
-              OutlinedButton(
-                onPressed: () => {pushDashBoardPage()},
-                child: const Text('ダッシュボード'),
-              ),
-              OutlinedButton(
-                onPressed: () => {print(employeeNo), setState(() {})},
-                child: Text(employeeNo),
-              ),
-              OutlinedButton(
-                onPressed: () => {registerDeviceId()},
-                child: const Text('登録'),
               ),
             ],
           ),
