@@ -5,7 +5,7 @@ import 'package:html/parser.dart' show parse;
 //機種の個別識別番号を取得する
 import 'package:device_info_plus/device_info_plus.dart';
 //ページ
-import 'pages/dashBoard.dart';
+import 'pages/dash_board.dart';
 //メソッド
 import 'service/toast.dart';
 
@@ -96,7 +96,6 @@ class _B2EPageState extends State<B2EPage> {
       ToastService.showSuccessToast("ログインに成功");
       location = response.headers["location"]!;
       jsessionid = response.headers["set-cookie"]!.substring(11, 43);
-      //getTopPage(location, jsessionid);
     } else {
       ToastService.showFailureToast("ログインに失敗");
     }
@@ -105,12 +104,6 @@ class _B2EPageState extends State<B2EPage> {
   }
 
   registerDeviceId() async {
-    employeeNo = userId.substring(4, userId.length);
-    print("--------------------------");
-    print(employeeNo);
-    print("--------------------------");
-    print(deviceId);
-
     var url =
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
     var response = await http.post(url, body: {
@@ -133,9 +126,8 @@ class _B2EPageState extends State<B2EPage> {
   void getDeviceInfo() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     AndroidDeviceInfo info = await deviceInfo.androidInfo;
-    var tmp = info.toMap();
+    Map tmp = info.toMap();
     deviceId = tmp["id"];
-    print(deviceId);
   }
 
   void searchCardId() async {
@@ -146,14 +138,10 @@ class _B2EPageState extends State<B2EPage> {
     });
 
     String ret = response.body;
-    print(ret);
     int start = ret.indexOf("employeeNo");
-    print(start);
     employeeNo = ret.substring(
         start + "employeeNo".length + 3, start + "employeeNo".length + 9);
-    print(employeeNo);
 
-    //bool res = ret.contains(widget.employeeNo);
     if (response.body.contains(deviceId)) {
       print("登録済みなので移動");
       pushDashBoardPage();
