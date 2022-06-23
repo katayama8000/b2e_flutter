@@ -51,6 +51,10 @@ class _B2EPageState extends State<B2EPage> {
 
   registerDeviceId() async {
     registerFlag = true;
+    if (!(userId.length == 10 || userId.length == 11)) {
+      ToastService.showFailureToast("正しいIDではありません\nもう一度入力してください");
+      return;
+    }
     employeeNo = userId.substring(4, userId.length);
     var url =
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
