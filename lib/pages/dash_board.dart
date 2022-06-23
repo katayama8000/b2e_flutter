@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' show parse;
 //toast
 import 'package:b2e_flutter/service/toast.dart';
 //現在時刻を取得

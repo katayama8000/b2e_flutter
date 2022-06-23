@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' show parse;
-
 //機種の個別識別番号を取得する
 import 'package:device_info_plus/device_info_plus.dart';
 //ページ
