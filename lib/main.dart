@@ -87,11 +87,9 @@ class _B2EPageState extends State<B2EPage> {
     print(employeeNo);
 
     if (employeeNo == "null") {
-      if (registerFlag == true) {
-        ToastService.showFailureToast("正しいIDではありません\nもう一度入力してください");
-      } else {
-        ToastService.showFailureToast("IDを登録してください");
-      }
+      registerFlag == true
+          ? ToastService.showFailureToast("正しいIDではありません\nもう一度入力してください")
+          : ToastService.showFailureToast("IDを登録してください");
     } else {
       int start = ret.indexOf("employeeNo");
       employeeNo = ret.substring(
