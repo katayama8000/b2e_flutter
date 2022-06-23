@@ -113,7 +113,7 @@ class _B2EPageState extends State<B2EPage> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 120, 86, 255),
         centerTitle: true,
-        title: Text('B2Epro - flutter', style: TextStyle(color: Colors.white)),
+        title: Text('B2Epro - Mobile', style: TextStyle(color: Colors.white)),
       ),
       body: SizedBox(
         width: double.infinity,

@@ -63,7 +63,7 @@ class _DashBoardState extends State<DashBoard> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 120, 86, 255),
         centerTitle: true,
-        title: const Text('B2Epro - Dashborad',
+        title: const Text('B2Epro - Mobile',
             style: TextStyle(color: Colors.white)),
       ),
       body: SafeArea(
