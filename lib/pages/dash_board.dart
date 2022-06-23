@@ -43,16 +43,14 @@ class _DashBoardState extends State<DashBoard> {
     String workState = inOutType == "1" ? "出勤" : "退勤";
     if (response.statusCode == 200) {
       var ret = await response.stream.bytesToString();
-      int start = ret.indexOf("empName");
-      String userName =
-          ret.substring(start + "empName".length + 3, ret.length - 2);
-
-      bool res = ret.contains(widget.employeeNo);
-      if (res) {
+      if (ret.isEmpty) {
+        ToastService.showFailureToast('再度やり直してください');
+      } else {
+        int start = ret.indexOf("empName");
+        String userName =
+            ret.substring(start + "empName".length + 3, ret.length - 2);
         String now = getLocalTime();
         ToastService.showSuccessToast('$userNameさんは\n$nowに$workStateしました');
-      } else {
-        ToastService.showFailureToast('$userNameさんは\n$workStateに失敗しました');
       }
     } else {
       print(response.reasonPhrase);

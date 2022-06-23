@@ -34,47 +34,11 @@ class B2EPage extends StatefulWidget {
 }
 
 class _B2EPageState extends State<B2EPage> {
-  String csrf = "";
   String userId = "";
-  String password = "";
-  String location = "";
-  String jsessionid = "";
   String employeeNo = "";
   String userName = "";
   String deviceId = "";
-
-  //成功したら、dashboardのHTMLを取得する
-  // Future<void> getTopPage(url, jsessionid) async {
-  //   var headers = {'cookie': 'JSESSIONID=$jsessionid'};
-  //   var request =
-  //       http.Request('GET', Uri.parse('http://stimeapp.snapshot.co.jp/ss/top'));
-  //   request.headers.addAll(headers);
-  //   http.StreamedResponse response = await request.send();
-  //   String html = await response.stream.bytesToString();
-  //   final document = parse(html);
-  //   userName = document.querySelector('#emp-name')!.text;
-  //   print(userName);
-  //   if (userName != null) {
-  //     pushDashBoardPage();
-  //   } else {
-  //     ToastService.showFailureToast("初めからやり直してください");
-  //   }
-  // }
-
-  //CSRFトークンを取得する(htmlからスクレイピングする)
-  void getCsrf() async {
-    try {
-      final response =
-          await http.get(Uri.parse("http://stimeapp.snapshot.co.jp/ss/login"));
-      final document = parse(response.body);
-      final result = document.querySelector('[name="_csrf"]');
-      csrf = result?.attributes['value'] ?? "";
-    } catch (e) {
-      throw Exception();
-    }
-    //機種識別番号がすでにあるのか調べる
-    searchCardId();
-  }
+  bool registerFlag = false;
 
   void pushDashBoardPage() {
     Navigator.push(
@@ -85,25 +49,9 @@ class _B2EPageState extends State<B2EPage> {
     );
   }
 
-  //ログインに必要な情報をpostする
-  void handleSignIn(csrf, userId, password) async {
-    var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
-    var response = await http.post(url,
-        body: {'userName': userId, 'password': password, '_csrf': csrf});
-
-    //リダイレクト成功
-    if (response.statusCode == 302) {
-      ToastService.showSuccessToast("ログインに成功");
-      location = response.headers["location"]!;
-      jsessionid = response.headers["set-cookie"]!.substring(11, 43);
-    } else {
-      ToastService.showFailureToast("ログインに失敗");
-    }
-    //成功した場合、それぞれの機種の個体識別番号を登録す
-    registerDeviceId();
-  }
-
   registerDeviceId() async {
+    registerFlag = true;
+    employeeNo = userId.substring(4, userId.length);
     var url =
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
     var response = await http.post(url, body: {
@@ -112,15 +60,7 @@ class _B2EPageState extends State<B2EPage> {
       'companyCode': '1000',
       'updateEmployeeId': '0',
     });
-
-    String ret = response.body;
-    bool res = ret.contains("更新しました");
-    if (res) {
-      ToastService.showSuccessToast("登録しました");
-      searchCardId();
-    } else {
-      ToastService.showFailureToast("再度やり直してください");
-    }
+    searchCardId();
   }
 
   void getDeviceInfo() async {
@@ -128,6 +68,7 @@ class _B2EPageState extends State<B2EPage> {
     AndroidDeviceInfo info = await deviceInfo.androidInfo;
     Map tmp = info.toMap();
     deviceId = tmp["id"];
+    searchCardId();
   }
 
   void searchCardId() async {
@@ -138,23 +79,30 @@ class _B2EPageState extends State<B2EPage> {
     });
 
     String ret = response.body;
+    print(ret);
+
     int start = ret.indexOf("employeeNo");
     employeeNo = ret.substring(
-        start + "employeeNo".length + 3, start + "employeeNo".length + 9);
+        start + "employeeNo".length + 2, start + "employeeNo".length + 6);
+    print(employeeNo);
 
-    if (response.body.contains(deviceId)) {
-      print("登録済みなので移動");
-      pushDashBoardPage();
+    if (employeeNo == "null") {
+      if (registerFlag == true) {
+        ToastService.showFailureToast("正しいIDではありません\nもう一度入力してください");
+      } else {
+        ToastService.showFailureToast("IDを登録してください");
+      }
     } else {
-      print("ログインしてください");
+      int start = ret.indexOf("employeeNo");
+      employeeNo = ret.substring(
+          start + "employeeNo".length + 3, start + "employeeNo".length + 9);
+      pushDashBoardPage();
     }
   }
 
   //アプリ起動時に一度だけ実行される
   @override
   void initState() {
-    //csrf取得
-    getCsrf();
     //機種識別番号取得
     getDeviceInfo();
   }
@@ -185,23 +133,10 @@ class _B2EPageState extends State<B2EPage> {
                   },
                 ),
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
-                child: TextField(
-                  //controller: myController,
-                  decoration: const InputDecoration(
-                    hintText: 'password',
-                  ),
-                  onChanged: (value) {
-                    password = value;
-                  },
-                ),
-              ),
               OutlinedButton(
                 child: const Text('機種識別番号登録'),
                 onPressed: () {
-                  handleSignIn(csrf, userId, password);
+                  registerDeviceId();
                 },
               ),
             ],
