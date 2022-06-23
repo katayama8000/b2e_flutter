@@ -96,7 +96,9 @@ class _B2EPageState extends State<B2EPage> {
       int start = ret.indexOf("employeeNo");
       employeeNo = ret.substring(
           start + "employeeNo".length + 3, start + "employeeNo".length + 9);
-      ToastService.showSuccessToast("登録完了しました");
+      if (registerFlag == true) {
+        ToastService.showSuccessToast("登録完了しました");
+      }
       pushDashBoardPage();
     }
   }
