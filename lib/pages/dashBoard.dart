@@ -46,7 +46,6 @@ class _DashBoardState extends State<DashBoard> {
       int start = ret.indexOf("empName");
       String userName =
           ret.substring(start + "empName".length + 3, ret.length - 2);
-      print(userName);
 
       bool res = ret.contains(widget.employeeNo);
       if (res) {

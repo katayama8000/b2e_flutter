@@ -39,7 +39,7 @@ class B2EPage extends StatefulWidget {
 class _B2EPageState extends State<B2EPage> {
   final url = 'http://stimeapp.snapshot.co.jp/ss/login';
   String csrf = "";
-  String userId = "1000100072";
+  String userId = "";
   String password = "";
   String location = "";
   String jsessionid = "";
@@ -48,22 +48,22 @@ class _B2EPageState extends State<B2EPage> {
   String deviceId = "";
 
   //成功したら、dashboardのHTMLを取得する
-  Future<void> getTopPage(url, jsessionid) async {
-    var headers = {'cookie': 'JSESSIONID=$jsessionid'};
-    var request =
-        http.Request('GET', Uri.parse('http://stimeapp.snapshot.co.jp/ss/top'));
-    request.headers.addAll(headers);
-    http.StreamedResponse response = await request.send();
-    String html = await response.stream.bytesToString();
-    final document = parse(html);
-    userName = document.querySelector('#emp-name')!.text;
-    print(userName);
-    if (userName != null) {
-      pushDashBoardPage();
-    } else {
-      ToastService.showFailureToast("初めからやり直してください");
-    }
-  }
+  // Future<void> getTopPage(url, jsessionid) async {
+  //   var headers = {'cookie': 'JSESSIONID=$jsessionid'};
+  //   var request =
+  //       http.Request('GET', Uri.parse('http://stimeapp.snapshot.co.jp/ss/top'));
+  //   request.headers.addAll(headers);
+  //   http.StreamedResponse response = await request.send();
+  //   String html = await response.stream.bytesToString();
+  //   final document = parse(html);
+  //   userName = document.querySelector('#emp-name')!.text;
+  //   print(userName);
+  //   if (userName != null) {
+  //     pushDashBoardPage();
+  //   } else {
+  //     ToastService.showFailureToast("初めからやり直してください");
+  //   }
+  // }
 
   //CSRFトークンを取得する(htmlからスクレイピングする)
   void getCsrf() async {
@@ -76,17 +76,7 @@ class _B2EPageState extends State<B2EPage> {
       throw Exception();
     }
     //機種識別番号がすでにあるのか調べる
-    searchCardId();
-  }
-
-  //機種個体識別番号を登録するページに移動
-  void pushRegisterDevicePage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RegisterDevice(employeeNo),
-      ),
-    );
+    //searchCardId();
   }
 
   void pushDashBoardPage() {
@@ -102,18 +92,19 @@ class _B2EPageState extends State<B2EPage> {
   void handleSignIn(csrf, userId, password) async {
     var url = Uri.parse('http://stimeapp.snapshot.co.jp/ss/login');
     var response = await http.post(url,
-        body: {'userName': userId, 'password': '3edcvbnm', '_csrf': csrf});
+        body: {'userName': userId, 'password': password, '_csrf': csrf});
 
     //リダイレクト成功
     if (response.statusCode == 302) {
       ToastService.showSuccessToast("ログインに成功");
       location = response.headers["location"]!;
       jsessionid = response.headers["set-cookie"]!.substring(11, 43);
-      getTopPage(location, jsessionid);
+      //getTopPage(location, jsessionid);
     } else {
       ToastService.showFailureToast("ログインに失敗");
     }
     //成功した場合、それぞれの機種の個体識別番号を登録す
+    registerDeviceId();
   }
 
   registerDeviceId() async {
@@ -121,6 +112,7 @@ class _B2EPageState extends State<B2EPage> {
     print("--------------------------");
     print(employeeNo);
     print("--------------------------");
+    print(deviceId);
     var url =
         Uri.parse('http://stimeapp.snapshot.co.jp/ss/stk/record/card/update');
     var response = await http.post(url, body: {
@@ -130,9 +122,14 @@ class _B2EPageState extends State<B2EPage> {
       'updateEmployeeId': '0',
     });
 
-    print(response.statusCode);
-    print(response.body);
-    print(response.body is String);
+    String ret = response.body;
+    bool res = ret.contains("更新しました");
+    if (res) {
+      ToastService.showSuccessToast("登録しました");
+      searchCardId();
+    } else {
+      ToastService.showFailureToast("再度やり直してください");
+    }
   }
 
   void getDeviceInfo() async {
@@ -218,24 +215,16 @@ class _B2EPageState extends State<B2EPage> {
                 },
               ),
               OutlinedButton(
-                onPressed: () => {pushRegisterDevicePage()},
-                child: const Text('機種識別番号登録'),
-              ),
-              OutlinedButton(
                 onPressed: () => {pushDashBoardPage()},
                 child: const Text('ダッシュボード'),
               ),
-              // OutlinedButton(
-              //   onPressed: () => {makeemployeeNo(userId)},
-              //   child: const Text('makeemployeeNo'),
-              // ),
+              OutlinedButton(
+                onPressed: () => {print(employeeNo), setState(() {})},
+                child: Text(employeeNo),
+              ),
               OutlinedButton(
                 onPressed: () => {registerDeviceId()},
                 child: const Text('登録'),
-              ),
-              ElevatedButton(
-                onPressed: ApiService.localAPITest,
-                child: const Text('ローカルAPIテスト'),
               ),
             ],
           ),
